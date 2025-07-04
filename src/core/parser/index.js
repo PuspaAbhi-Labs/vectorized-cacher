@@ -5,8 +5,8 @@ function parse(statement, lineNumber = 1) {
   const [commandRaw, key, value, ...extra] = expressions;
 
   if (!commandRaw || !key) {
-    throw new Error(
-      `Syntax Error (line ${lineNumber}): Command and key are required.\n → ${statement}`
+    throw new SyntaxError(
+      `(line ${lineNumber}): Command and key are required.\n → ${statement}`
     );
   }
 
