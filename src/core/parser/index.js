@@ -10,12 +10,38 @@ function parse(statement, lineNumber = 1) {
     );
   }
 
-  if (extra.length > 0) {
-    throw new Error(
-      `Syntax Error (line ${lineNumber}): Too many arguments.\n → ${statement}`
+  if (extra?.length) {
+    throw new SyntaxError(
+      `(line ${lineNumber}): Too many arguments.\n → ${statement}`
     );
   }
 
+  const rule = commandRules[command];
+
+  if (!rule) {
+    throw new Error(`Unknown Command (line ${lineNumber}): "${commandRaw}"`);
+  }
+
+  if (rule.requiresValue && !value) {
+    throw new SyntaxError(
+      `(line ${lineNumber}): ${command} requires a value.\n → ${statement}`
+    );
+  }
+
+  if (!rule.allowValue && value) {
+    throw new SyntaxError(
+      `(line ${lineNumber}): ${command} does not take a value.\n → ${statement}`
+    );
+  }
+
+  return {
+    command,
+    key,
+    value,
+  };
+}
+
+ 
   const command = commandRaw.toUpperCase();
 
   // Define the command behavior
@@ -26,37 +52,3 @@ function parse(statement, lineNumber = 1) {
     // Add more commands here if needed
     // UPDATE: { requiresValue: true, allowValue: true }
   };
-
-  const rule = commandRules[command];
-
-  if (!rule) {
-    throw new Error(`Unknown Command (line ${lineNumber}): "${commandRaw}"`);
-  }
-
-  if (rule.requiresValue && !value) {
-    throw new Error(
-      `Syntax Error (line ${lineNumber}): ${command} requires a value.\n → ${statement}`
-    );
-  }
-
-  if (!rule.allowValue && value) {
-    throw new Error(
-      `Syntax Error (line ${lineNumber}): ${command} does not take a value.\n → ${statement}`
-    );
-  }
-
-  return {
-    command,
-    key,
-    value: value || null,
-  };
-}
-
-try {
-  console.log(parse("SET foo bar"));
-  console.log(parse("get foo"));
-  console.log(parse("DELETE foo"));
-  console.log(parse("SET foo"));        // This will throw error
-} catch (e) {
-  console.error(e.message);
-}
